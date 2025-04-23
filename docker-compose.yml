@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+
+  consul:
+    image: hashicorp/consul:1.15.3  # Specify a valid version
+    container_name: consul
+    ports:
+      - "8500:8500"   # HTTP UI/API
+      - "8600:8600/udp" # DNS interface
+    command: ["agent", "-dev", "-client=0.0.0.0"]
+    networks:
+      - stock-content-network
+
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: stockdb
+    ports:
+      - "5432:5432"
+    networks:
+      - stock-content-network
+
+  # Redis for Rate Limiting
+  redis-cache:
+    image: redis:latest
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    networks:
+      - stock-content-network
+
+  # API Gateway Service
+  api-gateway:
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    depends_on:
+      - consul
+      - redis-cache
+      - zipkin
+      - logstash
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_APPLICATION_NAME=api-gateway
+      - SPRING_REDIS_HOST=redis-cache
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - SPRING_CLOUD_CONSUL_PORT=8500
+    networks:
+      - stock-content-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    depends_on:
+      - postgres-db
+      - redis-cache
+      - consul
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/stockdb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - SPRING_CLOUD_CONSUL_PORT=8500
+    networks:
+      - stock-content-network
+      
+  storage-service:
+    build: 
+      context: ./storage-service
+      dockerfile: Dockerfile
+    container_name: storage-service
+    depends_on:
+      - postgres-storage
+      - consul
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-storage:5432/storage_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - SPRING_CLOUD_CONSUL_PORT=8500
+    ports:
+      - "8082:8082"
+    volumes:
+      - external_storage:/app/external_storage	
+    networks: 
+      - stock-content-network
+
+  
+
+  # Zipkin for Tracing
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - stock-content-network
+
+  # ELK Stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    networks:
+      - stock-content-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.9
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5002:5002"
+    networks:
+      - stock-content-network
+
+  postgres-storage:
+    image: postgres:15
+    container_name: postgres-storage
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: storage_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - storage_data_postgres:/var/lib/postgresql/data
+    networks:
+      - stock-content-network
+
+  
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.9
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    networks:
+      - stock-content-network
+
+networks:
+  stock-content-network:
+    driver: bridge
+
+volumes:
+  storage_data_postgres:
+  external_storage:
+

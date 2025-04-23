@@ -1,0 +1,41 @@
+jwt:
+  secret: "youraveryasecureaandarandoma32abytesalongasecretakey"
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
+
+elk:
+  enabled: true
+  logstash:
+    host: logstash
+    port: 5000
+
+spring:
+  application:
+    name: api-gateway
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        register: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        health-check-timeout: 5s
+        register-health-check: true
+  zipkin:
+    base-url: http://zipkin:9411
+    sender.type: web
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  security:
+    enabled: false  # Disable security for Actuator

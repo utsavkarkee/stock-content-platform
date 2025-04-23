@@ -1,0 +1,7 @@
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/ApiGatewayApplication.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/config/GatewayConfig.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/config/OpenApiConfig.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/config/SecurityConfig.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/exception/GlobalExceptionHandler.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/filters/AuthenticationFilter.java
+/Users/utsavkarkee/dev/workspace/bunnywise/stock-content-platform/api-gateway/src/main/java/com/bunnywise/apigateway/filters/LoggingFilter.java
