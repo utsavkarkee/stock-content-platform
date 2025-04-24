@@ -5,6 +5,34 @@ in your fingertips.
 
 ## Description
 
+
 ## Quick Start
 
+
 ## Usage
+
+
+## Contributing
+
+### Clone the repo
+
+```bash
+git clone https://github.com/utsavkarkee/stock-content-platform
+cd stock-content-platform
+```
+
+### Build and run the project
+
+```bash
+docker compose up --build
+```
+
+### Run the tests
+
+```bash
+<<Test command here>>
+```
+
+### Submit a pull request
+
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
